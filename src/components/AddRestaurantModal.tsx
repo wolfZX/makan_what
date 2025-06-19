@@ -176,9 +176,6 @@ export default function AddRestaurantModal({
                 }
                 placeholder="Enter Google Maps URL (optional)"
               />
-              <FormHelperText>
-                Optional: Add a link to the restaurant on Google Maps
-              </FormHelperText>
             </FormControl>
 
             <FormControl display="flex" alignItems="center">

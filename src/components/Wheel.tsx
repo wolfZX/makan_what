@@ -1,5 +1,5 @@
 import React from "react";
-import { Box } from "@chakra-ui/react";
+import { Box, Text, VStack } from "@chakra-ui/react";
 import { Wheel as RouletteWheel } from "react-custom-roulette";
 import { Restaurant } from "./RestaurantTable";
 
@@ -86,12 +86,32 @@ export default function Wheel({
         textAlign="center"
         color="gray.500"
       >
-        <Box fontSize="lg" fontWeight="medium" mb={2}>
+        <Text fontSize="lg" fontWeight="medium">
           No restaurants yet
-        </Box>
-        <Box fontSize="sm">
-          Add some restaurants to start spinning the wheel!
-        </Box>
+        </Text>
+      </Box>
+    );
+  }
+
+  // Handle single restaurant state
+  if (restaurants.length === 1) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        minHeight="300px"
+        textAlign="center"
+      >
+        <VStack spacing={3}>
+          <Text fontSize="lg" color="gray.500" fontWeight="medium">
+            Need at least 2 restaurants to spin
+          </Text>
+          <Text fontSize="sm" color="gray.400">
+            Add more restaurants to start spinning!
+          </Text>
+        </VStack>
       </Box>
     );
   }

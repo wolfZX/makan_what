@@ -20,12 +20,14 @@ import {
   HStack,
   Center,
   useToast,
+  IconButton,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Wheel from "../../components/Wheel";
 import RestaurantTable, { Restaurant } from "../../components/RestaurantTable";
 import AddRestaurantModal from "../../components/AddRestaurantModal";
 import { restaurantService } from "../../lib/restaurantService";
+import { ChevronLeftIcon } from "@chakra-ui/icons";
 
 export default function AppPage() {
   const searchParams = useSearchParams();
@@ -186,15 +188,19 @@ export default function AppPage() {
 
   return (
     <Box minH="100vh" bg="brand.soyMilk" p={{ base: 2, md: 8 }}>
-      <Heading
-        as="h2"
-        size="lg"
-        color="brand.kopiBrown"
-        mb={6}
-        fontFamily="heading"
-      >
-        Welcome, {name}!
-      </Heading>
+      <Flex align="center" mb={6} gap={4}>
+        <IconButton
+          aria-label="Go back to home page"
+          icon={<ChevronLeftIcon boxSize={6} />}
+          variant="ghost"
+          colorScheme="orange"
+          size="sm"
+          onClick={() => (window.location.href = "/")}
+        />
+        <Heading as="h2" size="lg" color="brand.kopiBrown" fontFamily="heading">
+          Welcome, {name}!
+        </Heading>
+      </Flex>
       <Flex
         direction={{ base: "column", md: "row" }}
         gap={8}

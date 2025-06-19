@@ -10,8 +10,19 @@ import {
   IconButton,
   HStack,
   Link,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  Button,
+  useDisclosure,
+  Text,
+  VStack,
 } from "@chakra-ui/react";
 import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { useRef, useState } from "react";
 
 export interface Restaurant {
   id: string;
@@ -35,6 +46,42 @@ export default function RestaurantTable({
   onDelete,
   onEdit,
 }: RestaurantTableProps) {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const [restaurantToDelete, setRestaurantToDelete] =
+    useState<Restaurant | null>(null);
+
+  const handleDelete = (restaurant: Restaurant) => {
+    setRestaurantToDelete(restaurant);
+    onOpen();
+  };
+
+  const confirmDelete = () => {
+    if (restaurantToDelete && onDelete) {
+      onDelete(restaurantToDelete.id);
+    }
+    onClose();
+    setRestaurantToDelete(null);
+  };
+
+  // Show empty state if no data
+  if (!data || data.length === 0) {
+    return (
+      <Box
+        height="calc(100vh - 350px)"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <VStack spacing={4} textAlign="center" color="gray.500">
+          <Text fontSize="lg" fontWeight="medium">
+            No restaurants yet
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
+
   return (
     <Box overflowY="auto" maxH="calc(100vh - 250px)" fontFamily="body">
       <Table variant="simple" size="md">
@@ -93,7 +140,7 @@ export default function RestaurantTable({
                       size="sm"
                       colorScheme="red"
                       variant="ghost"
-                      onClick={() => onDelete(restaurant.id)}
+                      onClick={() => handleDelete(restaurant)}
                     />
                   )}
                 </HStack>
@@ -102,6 +149,36 @@ export default function RestaurantTable({
           ))}
         </Tbody>
       </Table>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Restaurant
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete {restaurantToDelete?.name}? This
+              action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 }
