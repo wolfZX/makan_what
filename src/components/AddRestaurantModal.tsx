@@ -18,6 +18,29 @@ import {
 import { useEffect, useState } from "react";
 import { Restaurant } from "./RestaurantTable";
 
+// Common cuisine types in Singapore
+const CUISINE_TYPES = [
+  "Chinese",
+  "Malay",
+  "Indian",
+  "Western",
+  "Japanese",
+  "Korean",
+  "Thai",
+  "Vietnamese",
+  "Indonesian",
+  "Mediterranean",
+  "Mexican",
+  "Italian",
+  "Fusion",
+  "Seafood",
+  "Vegetarian",
+  "Fast Food",
+  "Dessert",
+  "Cafe",
+  "Others",
+].sort();
+
 interface AddRestaurantModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,10 +60,11 @@ export default function AddRestaurantModal({
 }: AddRestaurantModalProps) {
   const [formData, setFormData] = useState({
     name: "",
-    cuisine: "",
+    cuisine: CUISINE_TYPES[0],
     priceRange: "$",
     isHalal: false,
     googleUrl: "",
+    orgName: "",
   });
 
   useEffect(() => {
@@ -51,14 +75,16 @@ export default function AddRestaurantModal({
         priceRange: initialValues.priceRange,
         isHalal: initialValues.isHalal,
         googleUrl: initialValues.googleUrl || "",
+        orgName: initialValues.orgName,
       });
     } else if (isOpen && mode === "add") {
       setFormData({
         name: "",
-        cuisine: "",
+        cuisine: CUISINE_TYPES[0],
         priceRange: "$",
         isHalal: false,
         googleUrl: "",
+        orgName: initialValues?.orgName || "",
       });
     }
   }, [isOpen, initialValues, mode]);
@@ -77,10 +103,11 @@ export default function AddRestaurantModal({
       }
       setFormData({
         name: "",
-        cuisine: "",
+        cuisine: CUISINE_TYPES[0],
         priceRange: "$",
         isHalal: false,
         googleUrl: "",
+        orgName: formData.orgName, // Preserve the orgName
       });
       onClose();
     }
@@ -109,13 +136,21 @@ export default function AddRestaurantModal({
 
             <FormControl isRequired>
               <FormLabel>Cuisine</FormLabel>
-              <Input
+              <Select
                 value={formData.cuisine}
                 onChange={(e) =>
                   setFormData({ ...formData, cuisine: e.target.value })
                 }
-                placeholder="Enter cuisine type"
-              />
+              >
+                {CUISINE_TYPES.map((cuisine) => (
+                  <option key={cuisine} value={cuisine}>
+                    {cuisine}
+                  </option>
+                ))}
+              </Select>
+              <FormHelperText>
+                Select the type of cuisine served at this restaurant
+              </FormHelperText>
             </FormControl>
 
             <FormControl>
