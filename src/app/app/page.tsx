@@ -18,18 +18,21 @@ import {
   Link,
   ModalFooter,
   HStack,
+  Center,
+  useToast,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Wheel from "../../components/Wheel";
 import RestaurantTable, { Restaurant } from "../../components/RestaurantTable";
 import AddRestaurantModal from "../../components/AddRestaurantModal";
-import { mockRestaurants } from "../../lib/mockData";
+import { restaurantService } from "../../lib/restaurantService";
 
 export default function AppPage() {
   const searchParams = useSearchParams();
   const name = searchParams.get("name") || "";
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [restaurants, setRestaurants] = useState<Restaurant[]>(mockRestaurants);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
 
@@ -47,6 +50,33 @@ export default function AppPage() {
   const [mustSpin, setMustSpin] = useState(false);
   const [prizeNumber, setPrizeNumber] = useState(0);
 
+  const toast = useToast();
+
+  // Load restaurants on mount
+  useEffect(() => {
+    const loadRestaurants = async () => {
+      try {
+        const data = await restaurantService.getRestaurants(name);
+        setRestaurants(data);
+      } catch (error) {
+        console.error("Failed to load restaurants:", error);
+        toast({
+          title: "Error loading restaurants",
+          description: "Please try refreshing the page",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (name) {
+      loadRestaurants();
+    }
+  }, [name, toast]);
+
   const handleRestaurantSelect = (restaurant: Restaurant) => {
     setSelectedRestaurant(restaurant);
     setJackpotRestaurant(restaurant);
@@ -61,18 +91,56 @@ export default function AppPage() {
     }
   };
 
-  const handleAddRestaurant = (newRestaurant: Omit<Restaurant, "id">) => {
-    const restaurantWithId = {
-      ...newRestaurant,
-      id: (restaurants.length + 1).toString(),
-    };
-    setRestaurants([...restaurants, restaurantWithId]);
+  const handleAddRestaurant = async (newRestaurant: Omit<Restaurant, "id">) => {
+    try {
+      const added = await restaurantService.addRestaurant(newRestaurant, name);
+      setRestaurants([...restaurants, added]);
+      onClose();
+      toast({
+        title: "Restaurant added",
+        description: `${added.name} has been added to your list`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to add restaurant:", error);
+      toast({
+        title: "Error adding restaurant",
+        description: "Please try again",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
-  const handleDeleteRestaurant = (id: string) => {
-    setRestaurants(restaurants.filter((r) => r.id !== id));
-    if (selectedRestaurant && selectedRestaurant.id === id) {
-      setSelectedRestaurant(null);
+  const handleDeleteRestaurant = async (id: string) => {
+    try {
+      await restaurantService.deleteRestaurant(id, name);
+      const deletedRestaurant = restaurants.find((r) => r.id === id);
+      setRestaurants(restaurants.filter((r) => r.id !== id));
+      if (selectedRestaurant && selectedRestaurant.id === id) {
+        setSelectedRestaurant(null);
+      }
+      toast({
+        title: "Restaurant deleted",
+        description: deletedRestaurant
+          ? `${deletedRestaurant.name} has been removed`
+          : "Restaurant has been removed",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to delete restaurant:", error);
+      toast({
+        title: "Error deleting restaurant",
+        description: "Please try again",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
     }
   };
 
@@ -81,14 +149,39 @@ export default function AppPage() {
     setIsEditModalOpen(true);
   };
 
-  const handleUpdateRestaurant = (updated: Omit<Restaurant, "id">) => {
-    setRestaurants(
-      restaurants.map((r) =>
-        r.id === editRestaurant?.id ? { ...r, ...updated } : r
-      )
-    );
-    setIsEditModalOpen(false);
-    setEditRestaurant(null);
+  const handleUpdateRestaurant = async (updated: Omit<Restaurant, "id">) => {
+    if (!editRestaurant) return;
+
+    try {
+      const updatedRestaurant = await restaurantService.updateRestaurant(
+        editRestaurant.id,
+        updated,
+        name
+      );
+      setRestaurants(
+        restaurants.map((r) =>
+          r.id === editRestaurant.id ? updatedRestaurant : r
+        )
+      );
+      setIsEditModalOpen(false);
+      setEditRestaurant(null);
+      toast({
+        title: "Restaurant updated",
+        description: `${updatedRestaurant.name} has been updated`,
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error("Failed to update restaurant:", error);
+      toast({
+        title: "Error updating restaurant",
+        description: "Please try again",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   return (
@@ -151,11 +244,17 @@ export default function AppPage() {
             </Button>
           </Flex>
           <Box flex={1} overflow="hidden">
-            <RestaurantTable
-              data={restaurants}
-              onDelete={handleDeleteRestaurant}
-              onEdit={handleEditRestaurant}
-            />
+            {isLoading ? (
+              <Center h="200px">
+                <Text>Loading restaurants...</Text>
+              </Center>
+            ) : (
+              <RestaurantTable
+                data={restaurants}
+                onDelete={handleDeleteRestaurant}
+                onEdit={handleEditRestaurant}
+              />
+            )}
           </Box>
         </Box>
       </Flex>
@@ -175,10 +274,12 @@ export default function AppPage() {
         initialValues={
           editRestaurant
             ? {
+                orgName: editRestaurant.orgName,
                 name: editRestaurant.name,
                 cuisine: editRestaurant.cuisine,
                 priceRange: editRestaurant.priceRange,
                 isHalal: editRestaurant.isHalal,
+                googleUrl: editRestaurant.googleUrl,
               }
             : undefined
         }

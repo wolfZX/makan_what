@@ -21,7 +21,8 @@ export default function LandingPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      router.push(`/app?name=${encodeURIComponent(name.trim())}`);
+      const formattedOrgName = name.trim().toLowerCase();
+      router.push(`/app?name=${encodeURIComponent(formattedOrgName)}`);
     }
   };
 
@@ -66,7 +67,7 @@ export default function LandingPage() {
                 />
                 <FormHelperText fontSize="xs" color="gray.500">
                   Note: Your restaurant list will be saved and retrieved based
-                  on the name you enter
+                  on the organization name you enter
                 </FormHelperText>
               </FormControl>
               <Button

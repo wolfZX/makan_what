@@ -74,6 +74,28 @@ export default function Wheel({
   setMustSpin,
   setPrizeNumber,
 }: WheelProps) {
+  // Handle empty state
+  if (!restaurants || restaurants.length === 0) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        minHeight="300px"
+        textAlign="center"
+        color="gray.500"
+      >
+        <Box fontSize="lg" fontWeight="medium" mb={2}>
+          No restaurants yet
+        </Box>
+        <Box fontSize="sm">
+          Add some restaurants to start spinning the wheel!
+        </Box>
+      </Box>
+    );
+  }
+
   const wheelColors = generateColors(restaurants.length);
 
   const data = restaurants.map((restaurant) => ({

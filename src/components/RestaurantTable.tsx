@@ -21,6 +21,7 @@ export interface Restaurant {
   isHalal: boolean;
   googleUrl?: string;
   selected?: boolean;
+  orgName: string;
 }
 
 interface RestaurantTableProps {
