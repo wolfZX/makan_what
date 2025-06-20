@@ -1,5 +1,5 @@
 "use client";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   Box,
   Button,
@@ -32,6 +32,7 @@ import Footer from "@/components/Footer";
 
 export default function AppPage() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const name = searchParams.get("name") || "";
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -196,7 +197,7 @@ export default function AppPage() {
           variant="ghost"
           colorScheme="orange"
           size="sm"
-          onClick={() => (window.location.href = "/")}
+          onClick={() => router.push("/")}
         />
         <Heading as="h2" size="lg" color="brand.kopiBrown" fontFamily="heading">
           Welcome, {name}!
