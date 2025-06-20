@@ -28,6 +28,7 @@ import RestaurantTable, { Restaurant } from "../../components/RestaurantTable";
 import AddRestaurantModal from "../../components/AddRestaurantModal";
 import { restaurantService } from "../../lib/restaurantService";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
+import Footer from "@/components/Footer";
 
 export default function AppPage() {
   const searchParams = useSearchParams();
@@ -372,6 +373,7 @@ export default function AppPage() {
           </ModalFooter>
         </ModalContent>
       </Modal>
+      <Footer />
       <style jsx global>{`
         @keyframes jackpot {
           0% {

@@ -13,6 +13,7 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import Footer from "@/components/Footer";
 
 export default function LandingPage() {
   const [name, setName] = useState("");
@@ -85,6 +86,7 @@ export default function LandingPage() {
           </form>
         </VStack>
       </Center>
+      <Footer />
     </Box>
   );
 }
