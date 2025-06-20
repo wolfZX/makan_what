@@ -1,6 +1,5 @@
 import { Box, Text } from "@chakra-ui/react";
-
-const APP_VERSION = "v1.0.0"; // We can update this manually for now
+import packageJson from "../../package.json";
 
 export default function Footer() {
   return (
@@ -14,7 +13,7 @@ export default function Footer() {
       bg="transparent"
     >
       <Text fontSize="sm" color="gray.500">
-        {APP_VERSION}
+        v{packageJson.version}
       </Text>
     </Box>
   );
