@@ -6,41 +6,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Type for the database restaurant (snake_case)
-interface DbRestaurant {
-  id: string;
-  name: string;
-  cuisine: string;
-  price_range: string;
-  is_halal: boolean;
-  google_url?: string;
-  org_name: string;
-  created_at: string;
-}
-
-// Convert database restaurant to app restaurant
-const toAppRestaurant = (dbRestaurant: DbRestaurant): Restaurant => ({
-  id: dbRestaurant.id,
-  name: dbRestaurant.name,
-  cuisine: dbRestaurant.cuisine,
-  priceRange: dbRestaurant.price_range,
-  isHalal: dbRestaurant.is_halal,
-  googleUrl: dbRestaurant.google_url,
-  orgName: dbRestaurant.org_name,
-});
-
-// Convert app restaurant to database format
-const toDbRestaurant = (
-  restaurant: Omit<Restaurant, "id">
-): Omit<DbRestaurant, "id" | "created_at"> => ({
-  name: restaurant.name,
-  cuisine: restaurant.cuisine,
-  price_range: restaurant.priceRange,
-  is_halal: restaurant.isHalal,
-  google_url: restaurant.googleUrl,
-  org_name: restaurant.orgName,
-});
-
 class DatabaseError extends Error {
   constructor(message: string, public originalError: Error | unknown) {
     super(message);
