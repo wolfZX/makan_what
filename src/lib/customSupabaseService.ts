@@ -14,12 +14,17 @@ class DatabaseError extends Error {
   }
 }
 
+// Helper function to check if we're on the client side
+const isClient = typeof window !== "undefined";
+
 class CustomSupabaseService {
   private getConfigKey(orgName: string): string {
     return `custom_supabase_config_${orgName.toLowerCase().trim()}`;
   }
 
   private getSupabaseClient(orgName: string): SupabaseClient | null {
+    if (!isClient) return null;
+
     try {
       const configKey = this.getConfigKey(orgName);
       const configStr = localStorage.getItem(configKey);
@@ -35,6 +40,10 @@ class CustomSupabaseService {
   }
 
   saveConfig(orgName: string, url: string, key: string): void {
+    if (!isClient) {
+      throw new Error("localStorage is not available on server side");
+    }
+
     try {
       const configKey = this.getConfigKey(orgName);
       const config: CustomSupabaseConfig = {
@@ -50,6 +59,8 @@ class CustomSupabaseService {
   }
 
   hasConfig(orgName: string): boolean {
+    if (!isClient) return false;
+
     try {
       const configKey = this.getConfigKey(orgName);
       return localStorage.getItem(configKey) !== null;
@@ -59,6 +70,8 @@ class CustomSupabaseService {
   }
 
   removeConfig(orgName: string): void {
+    if (!isClient) return;
+
     try {
       const configKey = this.getConfigKey(orgName);
       localStorage.removeItem(configKey);

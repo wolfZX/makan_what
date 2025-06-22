@@ -1,3 +1,4 @@
+"use client";
 import { Image } from "@chakra-ui/react";
 
 interface LogoProps {

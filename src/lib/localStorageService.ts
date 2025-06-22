@@ -2,9 +2,14 @@ import { Restaurant } from "@/components/RestaurantTable";
 
 const STORAGE_KEY_PREFIX = "makan_where_restaurants_";
 
+// Helper function to check if we're on the client side
+const isClient = typeof window !== "undefined";
+
 export const localStorageService = {
   // Get restaurants for a specific organization from localStorage
   getRestaurants(orgName: string): Restaurant[] {
+    if (!isClient) return [];
+
     try {
       const key = `${STORAGE_KEY_PREFIX}${orgName.toLowerCase().trim()}`;
       const stored = localStorage.getItem(key);
@@ -23,6 +28,10 @@ export const localStorageService = {
     restaurant: Omit<Restaurant, "id">,
     orgName: string
   ): Restaurant {
+    if (!isClient) {
+      throw new Error("localStorage is not available on server side");
+    }
+
     try {
       const key = `${STORAGE_KEY_PREFIX}${orgName.toLowerCase().trim()}`;
       const existing = this.getRestaurants(orgName);
@@ -49,6 +58,10 @@ export const localStorageService = {
     restaurant: Omit<Restaurant, "id">,
     orgName: string
   ): Restaurant {
+    if (!isClient) {
+      throw new Error("localStorage is not available on server side");
+    }
+
     try {
       const key = `${STORAGE_KEY_PREFIX}${orgName.toLowerCase().trim()}`;
       const existing = this.getRestaurants(orgName);
@@ -79,6 +92,10 @@ export const localStorageService = {
 
   // Delete a restaurant from localStorage
   deleteRestaurant(id: string, orgName: string): void {
+    if (!isClient) {
+      throw new Error("localStorage is not available on server side");
+    }
+
     try {
       const key = `${STORAGE_KEY_PREFIX}${orgName.toLowerCase().trim()}`;
       const existing = this.getRestaurants(orgName);
@@ -93,6 +110,8 @@ export const localStorageService = {
 
   // Check if localStorage is available
   isAvailable(): boolean {
+    if (!isClient) return false;
+
     try {
       const test = "__localStorage_test__";
       localStorage.setItem(test, test);

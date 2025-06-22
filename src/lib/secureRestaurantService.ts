@@ -15,8 +15,13 @@ class DatabaseError extends Error {
   }
 }
 
+// Helper function to check if we're on the client side
+const isClient = typeof window !== "undefined";
+
 // Check authorization server-side
 async function checkAuthorization(orgName: string): Promise<boolean> {
+  if (!isClient) return false;
+
   try {
     const response = await fetch("/api/auth", {
       method: "POST",
@@ -42,6 +47,8 @@ async function checkAuthorization(orgName: string): Promise<boolean> {
 export const secureRestaurantService = {
   // Fetch all restaurants for a user
   async getRestaurants(orgName: string): Promise<Restaurant[]> {
+    if (!isClient) return [];
+
     try {
       // First, check if user has a custom Supabase configuration
       if (customSupabaseService.hasConfig(orgName)) {
@@ -98,6 +105,10 @@ export const secureRestaurantService = {
     restaurant: Omit<Restaurant, "id">,
     orgName: string
   ): Promise<Restaurant> {
+    if (!isClient) {
+      throw new Error("Cannot add restaurant on server side");
+    }
+
     try {
       // First, check if user has a custom Supabase configuration
       if (customSupabaseService.hasConfig(orgName)) {
@@ -168,6 +179,10 @@ export const secureRestaurantService = {
     restaurant: Omit<Restaurant, "id">,
     orgName: string
   ): Promise<Restaurant> {
+    if (!isClient) {
+      throw new Error("Cannot update restaurant on server side");
+    }
+
     try {
       // First, check if user has a custom Supabase configuration
       if (customSupabaseService.hasConfig(orgName)) {
@@ -235,6 +250,10 @@ export const secureRestaurantService = {
 
   // Delete a restaurant
   async deleteRestaurant(id: string, orgName: string): Promise<void> {
+    if (!isClient) {
+      throw new Error("Cannot delete restaurant on server side");
+    }
+
     try {
       // First, check if user has a custom Supabase configuration
       if (customSupabaseService.hasConfig(orgName)) {

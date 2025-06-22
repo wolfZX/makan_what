@@ -1,3 +1,4 @@
+"use client";
 import { Box } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import Image from "next/image";

@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Box, Text, VStack } from "@chakra-ui/react";
 import { Wheel as RouletteWheel } from "react-custom-roulette";
