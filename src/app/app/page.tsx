@@ -21,12 +21,14 @@ import {
   Center,
   useToast,
   IconButton,
+  Alert,
+  AlertIcon,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Wheel from "../../components/Wheel";
 import RestaurantTable, { Restaurant } from "../../components/RestaurantTable";
 import AddRestaurantModal from "../../components/AddRestaurantModal";
-import { restaurantService } from "../../lib/restaurantService";
+import { secureRestaurantService } from "../../lib/secureRestaurantService";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
 import Footer from "@/components/Footer";
 
@@ -39,6 +41,7 @@ export default function AppPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
 
   // Edit modal state
   const [editRestaurant, setEditRestaurant] = useState<Restaurant | null>(null);
@@ -60,7 +63,13 @@ export default function AppPage() {
   useEffect(() => {
     const loadRestaurants = async () => {
       try {
-        const data = await restaurantService.getRestaurants(name);
+        // Check authorization first
+        const authorized = await secureRestaurantService.checkUserAuthorization(
+          name
+        );
+        setIsAuthorized(authorized);
+
+        const data = await secureRestaurantService.getRestaurants(name);
         setRestaurants(data);
       } catch (error) {
         console.error("Failed to load restaurants:", error);
@@ -97,7 +106,10 @@ export default function AppPage() {
 
   const handleAddRestaurant = async (newRestaurant: Omit<Restaurant, "id">) => {
     try {
-      const added = await restaurantService.addRestaurant(newRestaurant, name);
+      const added = await secureRestaurantService.addRestaurant(
+        newRestaurant,
+        name
+      );
       setRestaurants([...restaurants, added]);
       onClose();
       toast({
@@ -121,7 +133,7 @@ export default function AppPage() {
 
   const handleDeleteRestaurant = async (id: string) => {
     try {
-      await restaurantService.deleteRestaurant(id, name);
+      await secureRestaurantService.deleteRestaurant(id, name);
       const deletedRestaurant = restaurants.find((r) => r.id === id);
       setRestaurants(restaurants.filter((r) => r.id !== id));
       if (selectedRestaurant && selectedRestaurant.id === id) {
@@ -157,7 +169,7 @@ export default function AppPage() {
     if (!editRestaurant) return;
 
     try {
-      const updatedRestaurant = await restaurantService.updateRestaurant(
+      const updatedRestaurant = await secureRestaurantService.updateRestaurant(
         editRestaurant.id,
         updated,
         name
@@ -203,6 +215,22 @@ export default function AppPage() {
           Welcome, {name}!
         </Heading>
       </Flex>
+
+      {/* Storage method indicator */}
+      {isAuthorized !== null && (
+        <Alert
+          status={isAuthorized ? "success" : "info"}
+          borderRadius="md"
+          mb={4}
+          fontSize="sm"
+        >
+          <AlertIcon />
+          {isAuthorized
+            ? "Using cloud storage - your data syncs across devices"
+            : "Using local storage - your data stays on this device"}
+        </Alert>
+      )}
+
       <Flex
         direction={{ base: "column", md: "row" }}
         gap={8}
