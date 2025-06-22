@@ -1,5 +1,6 @@
 "use client";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
 import {
   Box,
   Button,
@@ -38,7 +39,7 @@ import { secureRestaurantService } from "../../lib/secureRestaurantService";
 import { ChevronLeftIcon, SettingsIcon } from "@chakra-ui/icons";
 import Footer from "@/components/Footer";
 
-export default function AppPage() {
+function AppPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const name = searchParams.get("name") || "";
@@ -493,5 +494,26 @@ export default function AppPage() {
         }
       `}</style>
     </Box>
+  );
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <Box minH="100vh" bg="brand.soyMilk" p={{ base: 2, md: 8 }}>
+      <Center h="100vh">
+        <Text fontSize="lg" color="gray.500">
+          Loading...
+        </Text>
+      </Center>
+    </Box>
+  );
+}
+
+export default function AppPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AppPageContent />
+    </Suspense>
   );
 }

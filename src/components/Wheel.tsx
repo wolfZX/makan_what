@@ -1,7 +1,6 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Text, VStack } from "@chakra-ui/react";
-import { Wheel as RouletteWheel } from "react-custom-roulette";
 import { Restaurant } from "./RestaurantTable";
 
 interface WheelProps {
@@ -11,6 +10,27 @@ interface WheelProps {
   prizeNumber: number;
   setMustSpin: (value: boolean) => void;
   setPrizeNumber: (value: number) => void;
+}
+
+// Type for the RouletteWheel component
+interface RouletteWheelProps {
+  mustStartSpinning: boolean;
+  prizeNumber: number;
+  data: Array<{
+    option: string;
+    style: {
+      backgroundColor: string;
+      textColor: string;
+    };
+  }>;
+  onStopSpinning: () => void;
+  outerBorderColor: string;
+  outerBorderWidth: number;
+  innerBorderWidth: number;
+  radiusLineWidth: number;
+  fontSize: number;
+  fontFamily: string;
+  spinDuration: number;
 }
 
 // Our brand colors
@@ -75,6 +95,18 @@ export default function Wheel({
   setMustSpin,
   setPrizeNumber,
 }: WheelProps) {
+  const [RouletteWheel, setRouletteWheel] =
+    useState<React.ComponentType<RouletteWheelProps> | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    // Dynamically import the wheel component only on client side
+    import("react-custom-roulette").then((module) => {
+      setRouletteWheel(() => module.Wheel);
+    });
+  }, []);
+
   // Handle empty state
   if (!restaurants || restaurants.length === 0) {
     return (
@@ -113,6 +145,25 @@ export default function Wheel({
             Add more restaurants to start spinning!
           </Text>
         </VStack>
+      </Box>
+    );
+  }
+
+  // Show loading state while the wheel component is being loaded
+  if (!isClient || !RouletteWheel) {
+    return (
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        minHeight="300px"
+        textAlign="center"
+        color="gray.500"
+      >
+        <Text fontSize="lg" fontWeight="medium">
+          Loading wheel...
+        </Text>
       </Box>
     );
   }
