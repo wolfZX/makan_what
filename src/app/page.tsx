@@ -64,7 +64,7 @@ export default function LandingPage() {
     e.preventDefault();
     if (name.trim()) {
       const formattedOrgName = name.trim().toLowerCase();
-      router.push(`/app?name=${encodeURIComponent(formattedOrgName)}`);
+      router.push(`/restaurants?name=${encodeURIComponent(formattedOrgName)}`);
     }
   };
 
