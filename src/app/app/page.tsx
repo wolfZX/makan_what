@@ -23,13 +23,19 @@ import {
   IconButton,
   Alert,
   AlertIcon,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Wheel from "../../components/Wheel";
 import RestaurantTable, { Restaurant } from "../../components/RestaurantTable";
 import AddRestaurantModal from "../../components/AddRestaurantModal";
+import SupabaseConfigModal from "../../components/SupabaseConfigModal";
 import { secureRestaurantService } from "../../lib/secureRestaurantService";
-import { ChevronLeftIcon } from "@chakra-ui/icons";
+import { ChevronLeftIcon, SettingsIcon } from "@chakra-ui/icons";
 import Footer from "@/components/Footer";
 
 export default function AppPage() {
@@ -42,6 +48,8 @@ export default function AppPage() {
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [hasCustomConfig, setHasCustomConfig] = useState(false);
+  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
 
   // Edit modal state
   const [editRestaurant, setEditRestaurant] = useState<Restaurant | null>(null);
@@ -68,6 +76,10 @@ export default function AppPage() {
           name
         );
         setIsAuthorized(authorized);
+
+        // Check for custom Supabase config
+        const customConfig = secureRestaurantService.hasCustomConfig(name);
+        setHasCustomConfig(customConfig);
 
         const data = await secureRestaurantService.getRestaurants(name);
         setRestaurants(data);
@@ -200,6 +212,44 @@ export default function AppPage() {
     }
   };
 
+  const handleSupabaseConfig = (config: { url: string; key: string }) => {
+    secureRestaurantService.saveCustomConfig(name, config.url, config.key);
+    setHasCustomConfig(true);
+    setIsAuthorized(true); // Treat as authorized since they have their own config
+    toast({
+      title: "Configuration saved",
+      description: "Your Supabase configuration has been saved successfully.",
+      status: "success",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const handleRemoveCustomConfig = () => {
+    secureRestaurantService.removeCustomConfig(name);
+    setHasCustomConfig(false);
+    setIsAuthorized(false);
+    toast({
+      title: "Configuration removed",
+      description: "Your custom Supabase configuration has been removed.",
+      status: "info",
+      duration: 3000,
+      isClosable: true,
+    });
+  };
+
+  const getStorageMethodText = () => {
+    if (hasCustomConfig) return "Using your own Supabase database";
+    if (isAuthorized)
+      return "Using cloud storage - your data syncs across devices";
+    return "Using local storage - your data stays on this device";
+  };
+
+  const getStorageMethodStatus = () => {
+    if (hasCustomConfig || isAuthorized) return "success";
+    return "info";
+  };
+
   return (
     <Box minH="100vh" bg="brand.soyMilk" p={{ base: 2, md: 8 }}>
       <Flex align="center" mb={6} gap={4}>
@@ -214,20 +264,43 @@ export default function AppPage() {
         <Heading as="h2" size="lg" color="brand.kopiBrown" fontFamily="heading">
           Welcome, {name}!
         </Heading>
+        <Box ml="auto">
+          <Menu>
+            <MenuButton
+              as={IconButton}
+              aria-label="Storage settings"
+              icon={<SettingsIcon />}
+              variant="ghost"
+              size="sm"
+            />
+            <MenuList>
+              <Text px={3} py={2} fontSize="sm" color="gray.600">
+                Storage Method
+              </Text>
+              <MenuDivider />
+              <MenuItem onClick={() => setShowSupabaseModal(true)}>
+                Configure Supabase
+              </MenuItem>
+              {hasCustomConfig && (
+                <MenuItem onClick={handleRemoveCustomConfig} color="red.500">
+                  Remove Custom Config
+                </MenuItem>
+              )}
+            </MenuList>
+          </Menu>
+        </Box>
       </Flex>
 
       {/* Storage method indicator */}
       {isAuthorized !== null && (
         <Alert
-          status={isAuthorized ? "success" : "info"}
+          status={getStorageMethodStatus()}
           borderRadius="md"
           mb={4}
           fontSize="sm"
         >
           <AlertIcon />
-          {isAuthorized
-            ? "Using cloud storage - your data syncs across devices"
-            : "Using local storage - your data stays on this device"}
+          {getStorageMethodText()}
         </Alert>
       )}
 
@@ -319,6 +392,12 @@ export default function AppPage() {
               }
             : undefined
         }
+      />
+      {/* Supabase Configuration Modal */}
+      <SupabaseConfigModal
+        isOpen={showSupabaseModal}
+        onClose={() => setShowSupabaseModal(false)}
+        onConfigSubmit={handleSupabaseConfig}
       />
       {/* Jackpot Modal */}
       <Modal

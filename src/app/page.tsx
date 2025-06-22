@@ -16,12 +16,16 @@ import {
 import { useRouter } from "next/navigation";
 import AnimatedBackground from "@/components/AnimatedBackground";
 import Footer from "@/components/Footer";
+import SupabaseConfigModal from "@/components/SupabaseConfigModal";
 import { isAuthorizedUserAsync } from "@/lib/config";
+import { secureRestaurantService } from "@/lib/secureRestaurantService";
 
 export default function LandingPage() {
   const [name, setName] = useState("");
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSupabaseModal, setShowSupabaseModal] = useState(false);
+  const [hasCustomConfig, setHasCustomConfig] = useState(false);
   const router = useRouter();
 
   // Check authorization when name changes
@@ -32,14 +36,22 @@ export default function LandingPage() {
         try {
           const authorized = await isAuthorizedUserAsync(name.trim());
           setIsAuthorized(authorized);
+
+          // Check if user has custom Supabase config
+          const customConfig = secureRestaurantService.hasCustomConfig(
+            name.trim()
+          );
+          setHasCustomConfig(customConfig);
         } catch (error) {
           console.error("Authorization check failed:", error);
           setIsAuthorized(false);
+          setHasCustomConfig(false);
         } finally {
           setIsLoading(false);
         }
       } else {
         setIsAuthorized(null);
+        setHasCustomConfig(false);
       }
     };
 
@@ -54,6 +66,30 @@ export default function LandingPage() {
       const formattedOrgName = name.trim().toLowerCase();
       router.push(`/app?name=${encodeURIComponent(formattedOrgName)}`);
     }
+  };
+
+  const handleSupabaseConfig = (config: { url: string; key: string }) => {
+    secureRestaurantService.saveCustomConfig(
+      name.trim(),
+      config.url,
+      config.key
+    );
+    setHasCustomConfig(true);
+    setIsAuthorized(true); // Treat as authorized since they have their own config
+  };
+
+  const getStorageMethodText = () => {
+    if (isLoading) return "Checking authorization...";
+    if (hasCustomConfig) return "You're using your own Supabase database";
+    if (isAuthorized)
+      return "You're using cloud storage (data syncs across devices)";
+    return "You're using local storage (data stays on this device)";
+  };
+
+  const getStorageMethodStatus = () => {
+    if (isLoading) return "info";
+    if (hasCustomConfig || isAuthorized) return "success";
+    return "info";
   };
 
   return (
@@ -104,20 +140,30 @@ export default function LandingPage() {
               {/* Storage method notification */}
               {name.trim() && (
                 <Alert
-                  status={
-                    isLoading ? "info" : isAuthorized ? "success" : "info"
-                  }
+                  status={getStorageMethodStatus()}
                   borderRadius="md"
                   fontSize="sm"
                 >
                   <AlertIcon />
-                  {isLoading
-                    ? "Checking authorization..."
-                    : isAuthorized
-                    ? "You're using cloud storage (data syncs across devices)"
-                    : "You're using local storage (data stays on this device)"}
+                  {getStorageMethodText()}
                 </Alert>
               )}
+
+              {/* Configure Supabase button for unauthorized users */}
+              {name.trim() &&
+                !isLoading &&
+                !isAuthorized &&
+                !hasCustomConfig && (
+                  <Button
+                    variant="outline"
+                    colorScheme="blue"
+                    size="sm"
+                    onClick={() => setShowSupabaseModal(true)}
+                    w="full"
+                  >
+                    Configure Your Own Supabase
+                  </Button>
+                )}
 
               <Button
                 type="submit"
@@ -135,6 +181,13 @@ export default function LandingPage() {
         </VStack>
       </Center>
       <Footer />
+
+      {/* Supabase Configuration Modal */}
+      <SupabaseConfigModal
+        isOpen={showSupabaseModal}
+        onClose={() => setShowSupabaseModal(false)}
+        onConfigSubmit={handleSupabaseConfig}
+      />
     </Box>
   );
 }

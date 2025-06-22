@@ -1,5 +1,6 @@
 import { Restaurant } from "@/components/RestaurantTable";
 import { localStorageService } from "./localStorageService";
+import { customSupabaseService } from "./customSupabaseService";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
@@ -42,6 +43,19 @@ export const secureRestaurantService = {
   // Fetch all restaurants for a user
   async getRestaurants(orgName: string): Promise<Restaurant[]> {
     try {
+      // First, check if user has a custom Supabase configuration
+      if (customSupabaseService.hasConfig(orgName)) {
+        try {
+          return await customSupabaseService.getRestaurants(orgName);
+        } catch (error) {
+          console.error(
+            "Custom Supabase failed, falling back to other methods:",
+            error
+          );
+          // Continue to other methods if custom config fails
+        }
+      }
+
       const isAuthorized = await checkAuthorization(orgName);
 
       if (isAuthorized) {
@@ -85,6 +99,19 @@ export const secureRestaurantService = {
     orgName: string
   ): Promise<Restaurant> {
     try {
+      // First, check if user has a custom Supabase configuration
+      if (customSupabaseService.hasConfig(orgName)) {
+        try {
+          return await customSupabaseService.addRestaurant(restaurant, orgName);
+        } catch (error) {
+          console.error(
+            "Custom Supabase failed, falling back to other methods:",
+            error
+          );
+          // Continue to other methods if custom config fails
+        }
+      }
+
       const isAuthorized = await checkAuthorization(orgName);
 
       if (isAuthorized) {
@@ -142,6 +169,23 @@ export const secureRestaurantService = {
     orgName: string
   ): Promise<Restaurant> {
     try {
+      // First, check if user has a custom Supabase configuration
+      if (customSupabaseService.hasConfig(orgName)) {
+        try {
+          return await customSupabaseService.updateRestaurant(
+            id,
+            restaurant,
+            orgName
+          );
+        } catch (error) {
+          console.error(
+            "Custom Supabase failed, falling back to other methods:",
+            error
+          );
+          // Continue to other methods if custom config fails
+        }
+      }
+
       const isAuthorized = await checkAuthorization(orgName);
 
       if (isAuthorized) {
@@ -192,6 +236,20 @@ export const secureRestaurantService = {
   // Delete a restaurant
   async deleteRestaurant(id: string, orgName: string): Promise<void> {
     try {
+      // First, check if user has a custom Supabase configuration
+      if (customSupabaseService.hasConfig(orgName)) {
+        try {
+          await customSupabaseService.deleteRestaurant(id, orgName);
+          return;
+        } catch (error) {
+          console.error(
+            "Custom Supabase failed, falling back to other methods:",
+            error
+          );
+          // Continue to other methods if custom config fails
+        }
+      }
+
       const isAuthorized = await checkAuthorization(orgName);
 
       if (isAuthorized) {
@@ -222,5 +280,20 @@ export const secureRestaurantService = {
   // Check if user is authorized (for UI purposes)
   async checkUserAuthorization(orgName: string): Promise<boolean> {
     return await checkAuthorization(orgName);
+  },
+
+  // Check if user has custom Supabase configuration
+  hasCustomConfig(orgName: string): boolean {
+    return customSupabaseService.hasConfig(orgName);
+  },
+
+  // Save custom Supabase configuration
+  saveCustomConfig(orgName: string, url: string, key: string): void {
+    customSupabaseService.saveConfig(orgName, url, key);
+  },
+
+  // Remove custom Supabase configuration
+  removeCustomConfig(orgName: string): void {
+    customSupabaseService.removeConfig(orgName);
   },
 };
