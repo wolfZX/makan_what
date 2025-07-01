@@ -32,6 +32,7 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import Wheel from "../../components/Wheel";
+import WheelFilter from "../../components/WheelFilter";
 import RestaurantTable, { Restaurant } from "../../components/RestaurantTable";
 import AddRestaurantModal from "../../components/AddRestaurantModal";
 import SupabaseConfigModal from "../../components/SupabaseConfigModal";
@@ -44,7 +45,11 @@ function AppPageContent() {
   const name = searchParams.get("name") || "";
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [filteredRestaurants, setFilteredRestaurants] = useState<Restaurant[]>(
+    []
+  );
   const [isLoading, setIsLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] =
     useState<Restaurant | null>(null);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
@@ -83,6 +88,7 @@ function AppPageContent() {
 
         const data = await secureRestaurantService.getRestaurants(name);
         setRestaurants(data);
+        setFilteredRestaurants(data); // Initialize filtered restaurants
       } catch (error) {
         console.error("Failed to load restaurants:", error);
         toast({
@@ -122,7 +128,9 @@ function AppPageContent() {
         newRestaurant,
         name
       );
-      setRestaurants([...restaurants, added]);
+      const updatedRestaurants = [...restaurants, added];
+      setRestaurants(updatedRestaurants);
+      setFilteredRestaurants(updatedRestaurants); // Reset filters when adding new restaurant
       onClose();
       toast({
         title: "Restaurant added",
@@ -146,16 +154,15 @@ function AppPageContent() {
   const handleDeleteRestaurant = async (id: string) => {
     try {
       await secureRestaurantService.deleteRestaurant(id, name);
-      const deletedRestaurant = restaurants.find((r) => r.id === id);
-      setRestaurants(restaurants.filter((r) => r.id !== id));
+      const updatedRestaurants = restaurants.filter((r) => r.id !== id);
+      setRestaurants(updatedRestaurants);
+      setFilteredRestaurants(updatedRestaurants); // Reset filters when deleting
       if (selectedRestaurant && selectedRestaurant.id === id) {
         setSelectedRestaurant(null);
       }
       toast({
         title: "Restaurant deleted",
-        description: deletedRestaurant
-          ? `${deletedRestaurant.name} has been removed`
-          : "Restaurant has been removed",
+        description: "Restaurant has been removed",
         status: "info",
         duration: 3000,
         isClosable: true,
@@ -186,11 +193,11 @@ function AppPageContent() {
         updated,
         name
       );
-      setRestaurants(
-        restaurants.map((r) =>
-          r.id === editRestaurant.id ? updatedRestaurant : r
-        )
+      const updatedRestaurants = restaurants.map((r) =>
+        r.id === editRestaurant.id ? updatedRestaurant : r
       );
+      setRestaurants(updatedRestaurants);
+      setFilteredRestaurants(updatedRestaurants); // Reset filters when updating
       setIsEditModalOpen(false);
       setEditRestaurant(null);
       toast({
@@ -325,7 +332,7 @@ function AppPageContent() {
           justifyContent="center"
         >
           <Wheel
-            restaurants={restaurants}
+            restaurants={filteredRestaurants}
             onSelect={handleRestaurantSelect}
             mustSpin={mustSpin}
             prizeNumber={prizeNumber}
@@ -344,13 +351,34 @@ function AppPageContent() {
           flexDirection="column"
         >
           <Flex justify="space-between" align="center" mb={4}>
-            <Heading size="md" color="brand.kopiBrown" fontFamily="heading">
-              Restaurants List
-            </Heading>
+            <HStack spacing={2}>
+              <Heading size="md" color="brand.kopiBrown" fontFamily="heading">
+                Restaurants List
+              </Heading>
+              <IconButton
+                aria-label="Toggle filters"
+                icon={<SettingsIcon />}
+                size="sm"
+                variant="ghost"
+                colorScheme="teal"
+                onClick={() => setShowFilters(!showFilters)}
+              />
+            </HStack>
             <Button colorScheme="orange" onClick={onOpen} fontFamily="cta">
               + Add Restaurant
             </Button>
           </Flex>
+
+          {/* Filter Section */}
+          {showFilters && (
+            <Box mb={4}>
+              <WheelFilter
+                restaurants={restaurants}
+                onFilterChange={setFilteredRestaurants}
+              />
+            </Box>
+          )}
+
           <Box flex={1} overflow="hidden">
             {isLoading ? (
               <Center h="200px">

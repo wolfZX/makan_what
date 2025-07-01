@@ -126,9 +126,14 @@ export default function Wheel({
         textAlign="center"
         color="gray.500"
       >
-        <Text fontSize="lg" fontWeight="medium">
-          No restaurants yet
-        </Text>
+        <VStack spacing={3}>
+          <Text fontSize="lg" fontWeight="medium">
+            No restaurants match your filters
+          </Text>
+          <Text fontSize="sm" color="gray.400">
+            Try adjusting your filter options above
+          </Text>
+        </VStack>
       </Box>
     );
   }
