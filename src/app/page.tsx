@@ -15,7 +15,6 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import AnimatedBackground from "@/components/AnimatedBackground";
-import Footer from "@/components/Footer";
 import SupabaseConfigModal from "@/components/SupabaseConfigModal";
 import { isAuthorizedUserAsync } from "@/lib/config";
 import { secureRestaurantService } from "@/lib/secureRestaurantService";
@@ -180,7 +179,6 @@ export default function LandingPage() {
           </form>
         </VStack>
       </Center>
-      <Footer />
 
       {/* Supabase Configuration Modal */}
       <SupabaseConfigModal

@@ -6,6 +6,7 @@ import "@fontsource/inter/400.css"; // Inter Regular
 import "./globals.css";
 import { ChakraProvider } from "@chakra-ui/react";
 import theme from "../styles/theme";
+import Footer from "../components/Footer";
 
 // export const metadata: Metadata = {
 //   title: "Makan Where?",
@@ -20,7 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body style={{ fontFamily: "Inter, sans-serif", background: "#FFF8F0" }}>
-        <ChakraProvider theme={theme}>{children}</ChakraProvider>
+        <ChakraProvider theme={theme}>
+          {children}
+          <Footer />
+        </ChakraProvider>
       </body>
     </html>
   );

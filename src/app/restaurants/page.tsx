@@ -37,7 +37,6 @@ import AddRestaurantModal from "../../components/AddRestaurantModal";
 import SupabaseConfigModal from "../../components/SupabaseConfigModal";
 import { secureRestaurantService } from "../../lib/secureRestaurantService";
 import { ChevronLeftIcon, SettingsIcon } from "@chakra-ui/icons";
-import Footer from "@/components/Footer";
 
 function AppPageContent() {
   const searchParams = useSearchParams();
@@ -321,7 +320,6 @@ function AppPageContent() {
           borderRadius="xl"
           boxShadow="md"
           p={{ base: 3, md: 6 }}
-          mb={{ base: 8, md: 0 }}
           display="flex"
           flexDirection="column"
           justifyContent="center"
@@ -482,7 +480,6 @@ function AppPageContent() {
           </ModalFooter>
         </ModalContent>
       </Modal>
-      <Footer />
       <style jsx global>{`
         @keyframes jackpot {
           0% {

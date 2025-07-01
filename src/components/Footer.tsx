@@ -6,7 +6,6 @@ export default function Footer() {
   return (
     <Box
       as="footer"
-      position="fixed"
       bottom={0}
       width="100%"
       py={2}

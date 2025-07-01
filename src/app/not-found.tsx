@@ -10,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/navigation";
 import AnimatedBackground from "@/components/AnimatedBackground";
-import Footer from "@/components/Footer";
 
 export default function NotFound() {
   const router = useRouter();
@@ -87,7 +86,6 @@ export default function NotFound() {
           </VStack>
         </VStack>
       </Center>
-      <Footer />
     </Box>
   );
 }
