@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Box, Text, VStack } from "@chakra-ui/react";
+import { keyframes } from "@emotion/react";
 import { Restaurant } from "./RestaurantTable";
 
 interface WheelProps {
@@ -86,6 +87,12 @@ const generateColors = (count: number): string[] => {
 
   return colors;
 };
+
+const bounce = keyframes`
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+`;
 
 export default function Wheel({
   restaurants,
@@ -192,6 +199,19 @@ export default function Wheel({
         }
       }}
     >
+      <div style={{ marginBottom: "10px" }}>
+        <Text
+          fontSize="lg"
+          fontWeight="semibold"
+          color="gray.700"
+          animation={!mustSpin ? `${bounce} 2s infinite` : "none"}
+        >
+          Click the wheel to spin!
+        </Text>
+        <Text fontSize="sm" color="gray.500">
+          Let fate decide where to eat today
+        </Text>
+      </div>
       <RouletteWheel
         mustStartSpinning={mustSpin}
         prizeNumber={prizeNumber}
